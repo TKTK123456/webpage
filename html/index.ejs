@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+      alert('<%- token %>');
+    </script>
+    <script>
+        async function getChannels() {
+          channelList = await $.get("/channels");
+          const output = $("#Channels").text(channelList);
+          output.html(output.html().replace(/\n/g,'<br/>'));
+      }
+      $(document).ready(function() {
+        getChannels("#Channels");
+        setIntervall(function(){
+          getChannels("#Channels");
+        }, 1000)
+      });
+    </script>
+  </head>
+  <body>
+    <center><h1>Channels</h1></center>
+    <center><p id="Channels"></p></center>
+    <center><h1>Send Messages</h1></center>
+    <form action="/send" method="post">
+      <input type="hidden" value='<%- token %>' name="token">
+      <center><input type="text" name="message" placeholder="Message"></center>
+      <br>
+      <center><input type="text" name="channel" placeholder="Channel ID"></center>
+      <br>
+      <center><input type="submit" value="Send"></center>
+    </form>
+  </body>
+</html>
