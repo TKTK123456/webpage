@@ -3,11 +3,17 @@
   <head>
     <title>Test</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="script.js"></script>
+    <script>
+      async function getChannels() {
+        $.get('channelList.txt', function(data) {
+           $("#test").text(data);
+        }, 'text');
+    }
+    </script>
   </head>
   <body>
     <h1>Hello World!</h1>
     <p id="test"></p>
-    <button onclick="getAllChannels()">get channels</button>
+    <button onclick="getChannels()">get channels</button>
   </body>
 </html>
