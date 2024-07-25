@@ -21,10 +21,10 @@
         $("#defaultSendForm").hide()
         $("#secondarySendForm").html(function(n, c) {
           let output = `<input type="hidden" value='<%- token %>' name="token">
-      <input type="hidden" value="${channelID}" name="channel">
-      <center><input type="text" name="message" placeholder="Message"></center>
+      <input type="hidden" value="${channelID}" name="channel" id="ssfc">
+      <center><input type="text" name="message" placeholder="Message" id="ssfm"></center>
       <br>
-      <center><input type="submit" value="Send to channel: ${channelName} with id: ${channelID}"></center>`
+      <center><button onclick="sendTwo('secondarySendForm')">Send</button></center>`
           return output
         })
         $("#secondarySendForm").show()
@@ -64,10 +64,40 @@
           message: message,
           channel: channel,
         }
-        $.post("/send", body, (data, status) => {
-          $("#sendOutput").html(data)
-          console.log(data);
-        });
+        try {
+          $.post("/send", body, (data, status) => {
+            $("#sendOutput").html(data)
+            console.log(data);
+          });
+        } catch (error) {
+          $("#sendOutput").html(`<h3>Invalid Message or Channel</h3>`)
+        }
+        return;
+      }
+    </script>
+    <script>
+      async function sendTwo(id) {
+        await send($(`#${id} input[name="message"]`).val(), $(`#${id} input[name="channel"]`).val())
+      }
+    </script>
+    <script>
+      async function getMessages(channelID) {
+        const token = '<%- token %>';
+        const body = {
+          token: token,
+          channel: channel,
+        }
+        try {
+          $.post("/messages", body, (data, status) => {
+            const returnData = data.forEach(function(n, c) {
+              return "<p>" + c + "</p>"
+            })
+            $("#sentMessages").html(data)
+            console.log(data);
+          });
+        } catch (error) {
+          $("#sentMessages").html(`<h3>Invalid Channel</h3>`)
+        }
         return;
       }
     </script>
@@ -76,21 +106,21 @@
     <center><h1>Channels</h1></center>
     <center><p id="Channels" class="close" ></p></center>
     <center><h1>Send Messages</h1></center>
-    <form id="defaultSendForm" class="send">
+    <div id="defaultSendForm" class="send">
       <input type="hidden" value='<%- token %>' name="token">
       <center><input type="text" name="message" placeholder="Message"></center>
       <br>
       <center><input type="text" name="channel" placeholder="Channel ID"></center>
       <br>
-      <center><input type="submit" value="Send"></center>
-    </form>
-    <div>
-      <input type="hidden" value="" name="channel" class="secondarySendForm" id="ssfc">
-      <center><input hidden type="text" name="message" placeholder="Message" class="secondarySendForm" id="ssfm"></center>
-      <br>
-      <center><button hidden class="secondarySendForm" onclick=''>Send</button></center>
+      <center><button onclick="sendTwo('defaultSendForm')">Send</button></center>
     </div>
-    <button onclick="send('hi', '1261714320052715552')">test</button>
+    <div id="secondarySendForm" hidden>
+      <input type="hidden" value="" name="channel" id="ssfc">
+      <center><input type="text" name="message" placeholder="Message" id="ssfm"></center>
+      <br>
+      <center><button onclick=''>Send</button></center>
+    </div>
     <center id="sendOutput"></center>
+    <div id="sentMessages" class="scroll" hidden></div>
   </body>
 </html>

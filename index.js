@@ -5,7 +5,14 @@ import path from "path";
 import express from "express";
 import ngrok from "@ngrok/ngrok";
 const __dirname = path.resolve();
-import { Client, GatewayIntentBits, Collection, Events, Partials, ChannelType} from 'discord.js';
+import {
+  Client,
+  GatewayIntentBits,
+  Collection,
+  Events,
+  Partials,
+  ChannelType,
+} from "discord.js";
 import { error } from "console";
 const client = new Client({
   intents: [
@@ -22,27 +29,32 @@ const client = new Client({
 const app = express();
 const test = express();
 app.use(bodyParser.urlencoded({ extended: false }));
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'html'));
-app.use(express.static(__dirname + '/html'));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "html"));
+app.use(express.static(__dirname + "/html"));
 app.post("/home", async (req, res) => {
   const token = req.body.token;
   if (token === undefined || token === "" || token === null) {
-    return res.send(`<center><h1>Invalid Token</h1></center>`)
+    return res.send(`<center><h1>Invalid Token</h1></center>`);
   } else {
     const tokenRegex = /(mfa\.[\w-]{84}|[\w-]{24}\.[\w-]{6}\.[\w-]{27})/;
     const isValid = token.match(tokenRegex);
-    if (isValid&&isValid !== null&&isValid !== undefined&&isValid !== '') {
+    if (
+      isValid &&
+      isValid !== null &&
+      isValid !== undefined &&
+      isValid !== ""
+    ) {
       try {
-      await client.login(token)
-   } catch(err) {
+        await client.login(token);
+      } catch (err) {
         return res.send(`<center><h1>Invalid Token</h1></center>`);
-   }
+      }
     } else {
-      return res.send(`<center><h1>Invalid Token</h1></center>`); 
-    };
-  };
-  res.render('index', { token: token })
+      return res.send(`<center><h1>Invalid Token</h1></center>`);
+    }
+  }
+  res.render("index", { token: token });
 });
 app.listen(8080, () => {
   console.log("Server is up!");
@@ -60,35 +72,117 @@ async function getChannels() {
   let output = "";
   for (const guild of client.guilds.cache.values()) {
     for (const channel of guild.channels.cache.values()) {
-      if (channel.type !== ChannelType.GuildCategory && channel.type !== ChannelType.GuildVoice) {
-      output += `${guild.name} - ${channel.name} - ${channel.id}\n`;
+      if (
+        channel.type !== ChannelType.GuildCategory &&
+        channel.type !== ChannelType.GuildVoice
+      ) {
+        output += `${guild.name} - ${channel.name} - ${channel.id}\n`;
       }
     }
   }
-  return output
+  return output;
 }
 app.post("/channels", function (req, res) {
-  Promise.resolve(getChannels()).then(
-    (value) => {
-      return res.send(value); // "Success"
-    }) 
+  Promise.resolve(getChannels()).then((value) => {
+    return res.send(value); // "Success"
+  });
 });
 app.post("/send", async function (req, res) {
   const token = req.body.token;
-  await client.login(token)
+  if (token === undefined || token === "" || token === null) {
+    return res.send(`<center><h1>Invalid Token</h1></center>`);
+  } else {
+    const tokenRegex = /(mfa\.[\w-]{84}|[\w-]{24}\.[\w-]{6}\.[\w-]{27})/;
+    const isValid = token.match(tokenRegex);
+    if (
+      isValid &&
+      isValid !== null &&
+      isValid !== undefined &&
+      isValid !== ""
+    ) {
+      try {
+        await client.login(token);
+      } catch (err) {
+        return res.send(`<center><h1>Invalid Token</h1></center>`);
+      }
+    } else {
+      return res.send(`<center><h1>Invalid Token</h1></center>`);
+    }
+  }
   const message = req.body.message;
   const channel = req.body.channel;
-  if (message === undefined || message === "" || message === null || channel === undefined || channel === "" || channel === null) {
-   return res.send(`<h3>Invalid Message or Channel</h3>`)
+  if (
+    message === undefined ||
+    message === "" ||
+    message === null ||
+    channel === undefined ||
+    channel === "" ||
+    channel === null
+  ) {
+    return res.send(`<h3>Invalid Message or Channel</h3>`);
   }
   try {
-  await client.channels.cache.get(channel).send(message);
-  } catch(err) {
-    console.log(err)
-    return res.send(`<h3>Invalid Message or Channel</h3>`)
+    await client.channels.cache.get(channel).send(message);
+  } catch (err) {
+    return res.send(`<h3>Invalid Message or Channel</h3>`);
   }
-  return res.send(`<h3>Message sent!</h3>`)
-}) 
-app.get("/login", async (req, res) => {
-  res.render('login')
+  return res.send(`<h3>Message sent!</h3>`);
 });
+app.get("/login", async (req, res) => {
+  res.render("login");
+});
+async function fetchAllMessages(channelID) {
+  const channel = client.channels.cache.get(channelID);
+  let messages = [];
+
+  // Create message pointer
+  let message = await channel.messages
+    .fetch({ limit: 1 })
+    .then(messagePage => (messagePage.size === 1 ? messagePage.at(0) : null));
+
+  while (message) {
+    await channel.messages
+      .fetch({ limit: 100, before: message.id })
+      .then()
+      .then(messagePage => {
+        messagePage.forEach(msg => messages.push( msg));
+
+        // Update our message pointer to be the last message on the page of messages
+        message = 0 < messagePage.size ? messagePage.at(messagePage.size - 1) : null;
+      });
+  }
+  return messages;
+}
+app.post("/messages", async (req, res) => {
+  const token = req.body.token;
+  if (token === undefined || token === "" || token === null) {
+    return res.send(`<center><h1>Invalid Token</h1></center>`);
+  } else {
+    const tokenRegex = /(mfa\.[\w-]{84}|[\w-]{24}\.[\w-]{6}\.[\w-]{27})/;
+    const isValid = token.match(tokenRegex);
+    if (
+      isValid &&
+      isValid !== null &&
+      isValid !== undefined &&
+      isValid !== ""
+    ) {
+      try {
+        await client.login(token);
+      } catch (err) {
+        return res.send(`Invalid Token`);
+      }
+    } else {
+      return res.send(`Invalid Token`);
+    }
+  }
+  const channel = req.body.channel;
+  if (channel === undefined ||channel === "" ||channel === null ||channel === "undefined") {
+    return res.send(`Invalid Channel`);
+  }
+  try {
+    const messages = await fetchAllMessages(channel);
+    return res.send(messages);
+  } catch (err) {
+    return res.send(`Invalid Channel`);
+  }
+})
