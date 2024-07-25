@@ -1,17 +1,14 @@
-<!DOCTYPE html>
 <html>
   <head>
     <title>Test</title>
+    <link rel="stylesheet" href="/style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script>
       async function getChannels(outputLocation) {
         channelList = await $.get("/channels");
         const output = $(outputLocation).text(channelList);
-        output.html(output.html().replace(/\n/g,'<br/>'));
+        output.html(output.html().replace(/\n/g,`</div><br/><div>`));
     }
-    </script>
-    <script>
-      const token = "";
     </script>
   </head>
   <body>

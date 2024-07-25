@@ -1,30 +1,82 @@
-<!DOCTYPE html>
 <html>
   <head>
     <title>Test</title>
+    <link rel="stylesheet" href="/style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script>
-      alert('<%- token %>');
+    <script type="text/javascript">
+        $(document).ready( function () {
+          $('.send').submit( function () {
+            formdata = $(this).serialize();
+            $.ajax({
+                type: "POST",
+                url: "/send",
+                data: formdata
+             });
+            return false;
+          });
+        });
     </script>
     <script>
+      async function setSendChannel(channelID, channelName) {
+        $("#defaultSendForm").hide()
+        $("#secondarySendForm").html(function(n, c) {
+          let output = `<input type="hidden" value='<%- token %>' name="token">
+      <input type="hidden" value="${channelID}" name="channel">
+      <center><input type="text" name="message" placeholder="Message"></center>
+      <br>
+      <center><input type="submit" value="Send to channel: ${channelName} with id: ${channelID}"></center>`
+          return output
+        })
+        $("#secondarySendForm").show()
+      }
+      let txt = '';
+      async function setText(value) {
+        txt +=  value + '\n'
+      }
+      let txt2 = '';
+      async function setTextTo(value) {
+        txt2 += `<div onclick="setSendChannel('${value.split(' - ')[2]}', '${value.split(' - ')[1]}')">${value}</div>`
+      }
+      let oldChannelList = "";
         async function getChannels() {
-          channelList = await $.get("/channels");
-          const output = $("#Channels").text(channelList);
-          output.html(output.html().replace(/\n/g,'<br/>'));
+          const channelList = await $.post("/channels");
+          txt = ''
+          await channelList.split('\n').forEach(setText)
+          if (oldChannelList === txt) return;
+          oldChannelList = txt
+          await $("#Channels").html(function(n, c) {
+            txt2 = ""
+            txt.split('\n').forEach(setTextTo)
+            const outputToReturn = txt2
+            return outputToReturn
+          });
       }
       $(document).ready(function() {
-        getChannels("#Channels");
-        setIntervall(function(){
-          getChannels("#Channels");
-        }, 1000)
-      });
+          setInterval(getChannels, 500)
+      }); 
+    </script>
+    <script>
+      async function send(message, channel) {
+        $("#sendOutput").html("<h3>Sending message...</h3>")
+        const token = '<%- token %>';
+        const body = {
+          token: token,
+          message: message,
+          channel: channel,
+        }
+        $.post("/send", body, (data, status) => {
+          $("#sendOutput").html(data)
+          console.log(data);
+        });
+        return;
+      }
     </script>
   </head>
   <body>
     <center><h1>Channels</h1></center>
-    <center><p id="Channels"></p></center>
+    <center><p id="Channels" class="close" ></p></center>
     <center><h1>Send Messages</h1></center>
-    <form action="/send" method="post">
+    <form id="defaultSendForm" class="send">
       <input type="hidden" value='<%- token %>' name="token">
       <center><input type="text" name="message" placeholder="Message"></center>
       <br>
@@ -32,5 +84,13 @@
       <br>
       <center><input type="submit" value="Send"></center>
     </form>
+    <div>
+      <input type="hidden" value="" name="channel" class="secondarySendForm" id="ssfc">
+      <center><input hidden type="text" name="message" placeholder="Message" class="secondarySendForm" id="ssfm"></center>
+      <br>
+      <center><button hidden class="secondarySendForm" onclick=''>Send</button></center>
+    </div>
+    <button onclick="send('hi', '1261714320052715552')">test</button>
+    <center id="sendOutput"></center>
   </body>
 </html>

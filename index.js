@@ -5,7 +5,8 @@ import path from "path";
 import express from "express";
 import ngrok from "@ngrok/ngrok";
 const __dirname = path.resolve();
-import { Client, GatewayIntentBits, Collection, Events, Partials} from 'discord.js';
+import { Client, GatewayIntentBits, Collection, Events, Partials, ChannelType} from 'discord.js';
+import { error } from "console";
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -19,16 +20,28 @@ const client = new Client({
 });
 // Create webserver
 const app = express();
+const test = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'html'));
+app.use(express.static(__dirname + '/html'));
 app.post("/home", async (req, res) => {
   const token = req.body.token;
   if (token === undefined || token === "" || token === null) {
     return res.send(`<center><h1>Invalid Token</h1></center>`)
   } else {
-    client.login(token)
-  }
+    const tokenRegex = /(mfa\.[\w-]{84}|[\w-]{24}\.[\w-]{6}\.[\w-]{27})/;
+    const isValid = token.match(tokenRegex);
+    if (isValid&&isValid !== null&&isValid !== undefined&&isValid !== '') {
+      try {
+      await client.login(token)
+   } catch(err) {
+        return res.send(`<center><h1>Invalid Token</h1></center>`);
+   }
+    } else {
+      return res.send(`<center><h1>Invalid Token</h1></center>`); 
+    };
+  };
   res.render('index', { token: token })
 });
 app.listen(8080, () => {
@@ -39,6 +52,7 @@ app.listen(8080, () => {
   const listener = await ngrok.forward({
     addr: 8080,
     authtoken_from_env: true,
+    domain: "starfish-meet-kid.ngrok-free.app",
   });
   console.log(`Ingress established at: ${listener.url()}/login`);
 })();
@@ -46,16 +60,18 @@ async function getChannels() {
   let output = "";
   for (const guild of client.guilds.cache.values()) {
     for (const channel of guild.channels.cache.values()) {
+      if (channel.type !== ChannelType.GuildCategory && channel.type !== ChannelType.GuildVoice) {
       output += `${guild.name} - ${channel.name} - ${channel.id}\n`;
+      }
     }
   }
   return output
 }
-app.get("/channels", function (req, res) {
+app.post("/channels", function (req, res) {
   Promise.resolve(getChannels()).then(
     (value) => {
       return res.send(value); // "Success"
-    })
+    }) 
 });
 app.post("/send", async function (req, res) {
   const token = req.body.token;
@@ -63,21 +79,16 @@ app.post("/send", async function (req, res) {
   const message = req.body.message;
   const channel = req.body.channel;
   if (message === undefined || message === "" || message === null || channel === undefined || channel === "" || channel === null) {
-    res.send(`<center><h1>Invalid Message or Channel ID</h1></center>`)
-    return;
+   return res.send(`<h3>Invalid Message or Channel</h3>`)
   }
-  client.channels.cache.get(channel).send(message);
-  res.render('send', { token: token});
-  return;
+  try {
+  await client.channels.cache.get(channel).send(message);
+  } catch(err) {
+    console.log(err)
+    return res.send(`<h3>Invalid Message or Channel</h3>`)
+  }
+  return res.send(`<h3>Message sent!</h3>`)
 }) 
 app.get("/login", async (req, res) => {
-  const filePath = path.resolve(__dirname, "html/login.html");
-  const file = fs.readFileSync(filePath, "utf8", (err, data) => {
-    if (err) {
-      console.log(err);
-    } else {
-      return data;
-    }
-  });
-  res.write(file)
+  res.render('login')
 });
