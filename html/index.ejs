@@ -28,6 +28,7 @@
           return output
         })
         $("#secondarySendForm").show()
+          setIntervalForGettingMessages(channelID)
       }
       let txt = '';
       async function setText(value) {
@@ -81,6 +82,8 @@
       }
     </script>
     <script>
+      let oldChannelId = "";
+      let oldMessages = "";
       async function getMessages(channelID) {
         const token = '<%- token %>';
         const body = {
@@ -92,13 +95,30 @@
             const returnData = data.forEach(function(n, c) {
               return "<p>" + c + "</p>"
             })
-            $("#sentMessages").html(data)
+            if (returnData !== oldMessages) {
+            oldMessages = returnData
+            $("#sentMessages").html(returnData)
             console.log(data);
+            }
           });
         } catch (error) {
           $("#sentMessages").html(`<h3>Invalid Channel</h3>`)
         }
         return;
+      }
+      let interval = "";
+      function setIntervalForGettingMessages(channelID) {
+        if (oldChannelId === "") {
+          interval = setInterval(getMessages, 500, channelID)
+          oldChannelId = channelID
+          return;
+        }
+        if (oldChannelId !== channelID) {
+          clearInterval(interval)
+          interval = setInterval(getMessages, 500, channelID)
+          oldChannelId = channelID
+          return;
+        }
       }
     </script>
   </head>
@@ -121,6 +141,6 @@
       <center><button onclick=''>Send</button></center>
     </div>
     <center id="sendOutput"></center>
-    <div id="sentMessages" class="scroll" hidden></div>
+    <div id="sentMessages" class="scroll"></div>
   </body>
 </html>
