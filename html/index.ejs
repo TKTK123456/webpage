@@ -84,6 +84,9 @@
     <script>
       let oldChannelId = "";
       let oldMessages = "";
+      async function cookies(data) {
+        
+      }
       async function getMessages(channelID) {
         const token = '<%- token %>';
         const body = {
@@ -93,9 +96,10 @@
         };
         try {
           $.post("/messages", body, (data, status) => {
-            if (oldMessages === data) return;
-            oldMessages = data
-            $("#sentMessages").html(`<p>${data}</p>`)
+            const DATA = data
+            if (oldMessages === DATA) return;
+            oldMessages = DATA
+            $("#sentMessages").html(`<p>${DATA.replace(/\n/g, "<br/>")}</p>`)
           });
         } catch (error) {
           $("#sentMessages").html(`<h3>Invalid Channel</h3>`)

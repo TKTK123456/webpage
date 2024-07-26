@@ -134,8 +134,8 @@ app.get("/login", async (req, res) => {
 async function fetchAllMessages(channelID) {
   let output = "";
   const channel = client.channels.cache.find(channel => channel.id === channelID);
-  const messages = await channel.messages.fetch({ limit: 100 }).then(messages => {
-   output += messages.map(message => `${message.author.username}: ${message.content}`).join("\n");
+  const messages = await channel.messages.fetch().then(messages => {
+   output = messages.map(message => `${message.author.username} - ${message.content}`).join("\n");
   })
   return output;
 }
