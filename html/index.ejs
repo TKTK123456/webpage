@@ -88,18 +88,14 @@
         const token = '<%- token %>';
         const body = {
           token: token,
-          channel: channel,
-        }
+          channel: channelID,
+          num: 900,
+        };
         try {
           $.post("/messages", body, (data, status) => {
-            const returnData = data.forEach(function(n, c) {
-              return "<p>" + c + "</p>"
-            })
-            if (returnData !== oldMessages) {
-            oldMessages = returnData
-            $("#sentMessages").html(returnData)
-            console.log(data);
-            }
+            if (oldMessages === data) return;
+            oldMessages = data
+            $("#sentMessages").html(`<p>${data}</p>`)
           });
         } catch (error) {
           $("#sentMessages").html(`<h3>Invalid Channel</h3>`)
@@ -107,15 +103,17 @@
         return;
       }
       let interval = "";
-      function setIntervalForGettingMessages(channelID) {
+      async function setIntervalForGettingMessages(channelID) {
         if (oldChannelId === "") {
-          interval = setInterval(getMessages, 500, channelID)
+          interval = setInterval(await getMessages, 500, channelID)
+          getMessages(channelID)
           oldChannelId = channelID
           return;
         }
         if (oldChannelId !== channelID) {
           clearInterval(interval)
-          interval = setInterval(getMessages, 500, channelID)
+          interval = setInterval(await getMessages, 500, channelID)
+          getMessages(channelID)
           oldChannelId = channelID
           return;
         }

@@ -132,57 +132,15 @@ app.get("/login", async (req, res) => {
   res.render("login");
 });
 async function fetchAllMessages(channelID) {
-  const channel = client.channels.cache.get(channelID);
-  let messages = [];
-
-  // Create message pointer
-  let message = await channel.messages
-    .fetch({ limit: 1 })
-    .then(messagePage => (messagePage.size === 1 ? messagePage.at(0) : null));
-
-  while (message) {
-    await channel.messages
-      .fetch({ limit: 100, before: message.id })
-      .then()
-      .then(messagePage => {
-        messagePage.forEach(msg => messages.push( msg));
-
-        // Update our message pointer to be the last message on the page of messages
-        message = 0 < messagePage.size ? messagePage.at(messagePage.size - 1) : null;
-      });
-  }
-  return messages;
+  const channel = client.channels.cache.find(channel => channel.id === channelID);
+  const messages = channel.messages.fetch({ limit: 100 }).then(messages => {
+    return `${messages}<br/>`;
+  })
+  return await messages;
 }
 app.post("/messages", async (req, res) => {
-  const token = req.body.token;
-  if (token === undefined || token === "" || token === null) {
-    return res.send(`<center><h1>Invalid Token</h1></center>`);
-  } else {
-    const tokenRegex = /(mfa\.[\w-]{84}|[\w-]{24}\.[\w-]{6}\.[\w-]{27})/;
-    const isValid = token.match(tokenRegex);
-    if (
-      isValid &&
-      isValid !== null &&
-      isValid !== undefined &&
-      isValid !== ""
-    ) {
-      try {
-        await client.login(token);
-      } catch (err) {
-        return res.send(`Invalid Token`);
-      }
-    } else {
-      return res.send(`Invalid Token`);
-    }
-  }
   const channel = req.body.channel;
-  if (channel === undefined ||channel === "" ||channel === null ||channel === "undefined") {
-    return res.send(`Invalid Channel`);
-  }
-  try {
-    const messages = await fetchAllMessages(channel);
-    return res.send(messages);
-  } catch (err) {
-    return res.send(`Invalid Channel`);
-  }
+  Promise.resolve(fetchAllMessages(channel)).then((value) => {
+    return res.send(`${value}`); // "Success"
+  });
 })
