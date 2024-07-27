@@ -13,7 +13,6 @@ import {
   Partials,
   ChannelType,
 } from "discord.js";
-import { error } from "console";
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -134,9 +133,15 @@ app.get("/login", async (req, res) => {
 async function fetchAllMessages(channelID) {
   let output = "";
   const channel = client.channels.cache.find(channel => channel.id === channelID);
+  try {
   const messages = await channel.messages.fetch().then(messages => {
    output = messages.map(message => `${message.author.username} - ${message.content}`).join("\n");
   })
+  } catch(err) {
+    console.log(err)
+    return err;
+  }
+  output = output.split("\n").reverse().join("\n");
   return output;
 }
 app.post("/messages", async (req, res) => {
