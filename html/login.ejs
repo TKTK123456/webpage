@@ -3,17 +3,10 @@
     <title>Test</title>
     <link rel="stylesheet" href="/style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script>
-      async function getChannels(outputLocation) {
-        channelList = await $.get("/channels");
-        const output = $(outputLocation).text(channelList);
-        output.html(output.html().replace(/\n/g,`</div><br/><div>`));
-    }
-    </script>
   </head>
   <body>
     <center><h1>Login</h1></center>
-    <form action="/home" method="post">
+    <form action="discordBotSend/home" method="post">
       <center><input type="text" name="token" placeholder="Token"></center>
       <br>
       <center><input type="submit" value="Login"></center>
