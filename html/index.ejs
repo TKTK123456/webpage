@@ -108,6 +108,7 @@
       }
       let interval = "";
       async function setIntervalForGettingMessages(channelID) {
+        clearInterval(interval)
         if (oldChannelId === "") {
           interval = setInterval(await getMessages, 500, channelID)
           getMessages(channelID)
@@ -115,7 +116,6 @@
           return;
         }
         if (oldChannelId !== channelID) {
-          clearInterval(interval)
           interval = setInterval(await getMessages, 500, channelID)
           getMessages(channelID)
           oldChannelId = channelID
