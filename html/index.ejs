@@ -9,7 +9,7 @@
             formdata = $(this).serialize();
             $.ajax({
                 type: "POST",
-                url: "discordBotSend/send",
+                url: "/discordBotSend/send",
                 data: formdata
              });
             return false;
@@ -40,7 +40,7 @@
       }
       let oldChannelList = "";
         async function getChannels() {
-          const channelList = await $.post("discordBotSend/channels");
+          const channelList = await $.post("/discordBotSend/channels");
           txt = ''
           await channelList.split('\n').forEach(setText)
           if (oldChannelList === txt) return;
@@ -66,7 +66,7 @@
           channel: channel,
         }
         try {
-          $.post("discordBotSend/send", body, (data, status) => {
+          $.post("/discordBotSend/send", body, (data, status) => {
             $("#sendOutput").html(data)
             console.log(data);
           });
@@ -95,7 +95,7 @@
           num: 900,
         };
         try {
-          $.post("discordBotSend/messages", body, (data, status) => {
+          $.post("/discordBotSend/messages", body, (data, status) => {
             const DATA = data
             if (oldMessages === DATA) return;
             oldMessages = DATA

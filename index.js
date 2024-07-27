@@ -30,7 +30,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "html"));
 app.use(express.static(__dirname + "/html"));
-app.post("discordBotSend/home", async (req, res) => {
+app.post("/discordBotSend/home", async (req, res) => {
   const token = req.body.token;
   if (token === undefined || token === "" || token === null) {
     return res.send(`<center><h1>Invalid Token</h1></center>`);
@@ -64,7 +64,7 @@ app.listen(8080, () => {
     authtoken_from_env: true,
     domain: "starfish-meet-kid.ngrok-free.app",
   });
-  console.log(`Ingress established at: ${listener.url()}/login`);
+  console.log(`Ingress established at: ${listener.url()}/discordBotSend/login`);
 })();
 async function getChannels() {
   let output = "";
@@ -80,12 +80,12 @@ async function getChannels() {
   }
   return output;
 }
-app.post("discordBotSend/channels", function (req, res) {
+app.post("/discordBotSend/channels", function (req, res) {
   Promise.resolve(getChannels()).then((value) => {
     return res.send(value); // "Success"
   });
 });
-app.post("discordBotSend/send", async function (req, res) {
+app.post("/discordBotSend/send", async function (req, res) {
   const token = req.body.token;
   if (token === undefined || token === "" || token === null) {
     return res.send(`<center><h1>Invalid Token</h1></center>`);
@@ -126,7 +126,7 @@ app.post("discordBotSend/send", async function (req, res) {
   }
   return res.send(`<h3>Message sent!</h3>`);
 });
-app.get("discordBotSend/login", async (req, res) => {
+app.get("/discordBotSend/login", async (req, res) => {
   res.render("login");
 });
 async function fetchAllMessages(channelID) {
@@ -143,7 +143,7 @@ async function fetchAllMessages(channelID) {
   output = output.split("\n").reverse().join("\n");
   return output;
 }
-app.post("discordBotSend/messages", async (req, res) => {
+app.post("/discordBotSend/messages", async (req, res) => {
   const channel = req.body.channel;
   Promise.resolve(fetchAllMessages(channel)).then((value) => {
     return res.send(`${value}`); // "Success"
