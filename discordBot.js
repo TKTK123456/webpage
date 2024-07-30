@@ -1,5 +1,6 @@
 import http from "http";
 import fs from "fs";
+import repl from "repl";
 import bodyParser from "body-parser"; 
 import path from "path";
 import express from "express";
@@ -54,18 +55,6 @@ app.post("/discordBotSend/home", async (req, res) => {
   }
   res.render("index", { token: token });
 });
-app.listen(8080, () => {
-  console.log("Server is up!");
-});
-
-(async function () {
-  const listener = await ngrok.forward({
-    addr: 8080,
-    authtoken_from_env: true,
-    domain: "starfish-meet-kid.ngrok-free.app",
-  });
-  console.log(`Ingress established at: ${listener.url()}/discordBotSend/login`);
-})();
 async function getChannels() {
   let output = "";
   for (const guild of client.guilds.cache.values()) {
@@ -149,3 +138,4 @@ app.post("/discordBotSend/messages", async (req, res) => {
     return res.send(`${value}`); // "Success"
   });
 })
+export default app
