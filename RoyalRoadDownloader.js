@@ -5,23 +5,6 @@ import express from "express";
 import ngrok from "@ngrok/ngrok";
 import { parseFromString } from "dom-parser";
 const __dirname = path.resolve();
-async function getChapterFromUrl(url) {
-  await fetch(url)
-    .then((response) => response.text())
-    .then(async function (html) {
-      const chapterName = html.match(/<title>(.*?)( \-)/)[1];
-      const bookTitle = html
-        .match(/<title>(.*?)<\/title>/)[1]
-        .split(" - ")[1]
-        .split(" | ")[0];
-      const startLoc = html.indexOf(
-        '<div class="chapter-inner chapter-content">',
-      );
-      const endLoc = html.indexOf("</div>", startLoc);
-      let chapter = `<h1>${bookTitle}</h1><h2>${chapterName}</h2>${html.substring(startLoc, endLoc)}`;
-      return chapter;
-    });
-}
 async function download(app) {
   app.get("/royalroad/chapterText/url", async (req, res) => {
     const url = req.query.url;
@@ -29,6 +12,7 @@ async function download(app) {
       return res.send(`<center><h1>Invalid URL</h1></center>`);
     } else {
       try {
+        let chapter = ""
         await fetch(url)
           .then((response) => response.text())
           .then(async function (html) {
@@ -41,10 +25,12 @@ async function download(app) {
               '<div class="chapter-inner chapter-content">',
             );
             const endLoc = html.indexOf("</div>", startLoc);
-            const chapter = `<h1>${bookTitle}</h1><h2>${chapterName}</h2>${html.substring(startLoc, endLoc)}`;
-            res.send(chapter);
+            chapter = `<h1>${bookTitle}</h1><h2>${chapterName}</h2>${html.substring(startLoc, endLoc)}`
           });
-        return;
+          fs.writeFileSync(path.join(__dirname, "html/download/chapter.html"), chapter)
+          res.download(path.join(__dirname, "html/download/chapter.html"), "chapter.html", (err) => {
+          res.sendFile(path.join(__dirname, "html/download/chapter.html"))
+          })
       } catch (err) {
         return res.send(`<center><h1>Invalid URL</h1></center>`);
       }
@@ -85,12 +71,13 @@ async function download(app) {
           await fetch(Url)
             .then((response) => response.text())
             .then(async function (html) {
-              Url = html.match(/<link rel='next' href='(.*?)'\/>/)[1];
-              console.log(html.match(/<link rel='next' href='(.*?)'\/>/)[1]); // No need for await
-              // Remove return here
+              if (/<link rel='next' href='(.*?)'\/>/.test(html)) {
+                Url = html.match(/<link rel='next' href='(.*?)'\/>/)[1];
+              } else {
+                return res.send(chapter);
+              }
             });
           Url = `https://royalroad.com${Url}`;
-          console.log(Url)
           await fetch(Url)
             .then((response) => response.text())
             .then(async function (html) {
@@ -107,9 +94,11 @@ async function download(app) {
               return;
             });
         }
-        return res.send(chapter);
+          fs.writeFileSync(path.join(__dirname, "html/download/chapter.html"), chapter)
+          res.download(path.join(__dirname, "html/download/chapter.html"), "chapter.html", (err) => {
+            res.sendFile(path.join(__dirname, "html/download/chapter.html"))
+          })
       } catch (err) {
-        console.log(err);
         return res.send(`<center><h1>Invalid URL</h1></center>`);
       }
     }
