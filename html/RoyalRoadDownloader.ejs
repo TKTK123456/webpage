@@ -1,0 +1,20 @@
+<html>
+  <head>
+    <title>Get Chapter Text</title>
+    <link rel="stylesheet" href="/RoyalRoadDownloader.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <center><h1>Get Chapter Text</h1></center>
+    <form action="/royalroad/chapterText/url" method="get">
+    <center><input type="text" id="url" name="url"></center>
+    <center><input type="submit" value="Get Chapter Text"></center>
+    </form>
+    <center><h1>Get number of chapters text</h1></center>
+    <form action="/royalroad/chapterText/url/downloadNum" method="get">
+      <center><input type="text" id="url" name="url"></center>
+      <center><input type="number" id="num" name="num"></center>
+      <center><input type="submit" value="Get number of chapters text"></center>
+    </form>
+  </body>
+</html>

@@ -4,6 +4,7 @@ import express from "express";
 import ngrok from "@ngrok/ngrok";
 const __dirname = path.resolve();
 import app from "./discordBot.js";
+import runRoyalRoadDownloader from "./RoyalRoadDownloader.js";
 app.get("/", async (req, res) => {
   res.render("home");
 })
@@ -18,3 +19,4 @@ app.listen(8080, () => {
   });
   console.log(`Ingress established at: ${listener.url()}/`);
 })();
+runRoyalRoadDownloader(app)
